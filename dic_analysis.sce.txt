@@ -1,0 +1,106 @@
+clear();
+clearglobal();
+function [K]=korelacja(Obraz, Wzorzec, xT, yT)
+    ObrazCut=Obraz(yT:yT+size(Wzorzec)(1)-1,xT:xT+size(Wzorzec)(1)-1);
+    SumaTI=sum(Wzorzec.*ObrazCut);
+    SumaT2=sum(Wzorzec.^2);
+    SumaI2=sum(ObrazCut.^2);
+    K=SumaTI/sqrt(SumaT2*SumaI2);
+endfunction
+t1x=150;
+t1y=1800;
+t2x=150;
+t2y=850;
+Tsize=75;
+Area=50;
+nazwaKatalogu=uigetdir(); //okreslenie katalogu z obrazami
+wzorcowe=fscanfMat(nazwaKatalogu+"\1_00080.txt"); //wczytanie plików w postaci macierzy
+odksztalcone=fscanfMat(nazwaKatalogu+"\1_00177.txt");
+//wyswietlenie wczytanych obrazow
+scf(0).color_map=graycolormap(255);
+clf
+Matplot(wzorcowe);
+scf(1).color_map=graycolormap(255);
+clf
+Matplot(odksztalcone);
+Template1=wzorcowe(t1y:t1y+Tsize,t1x:t1x+Tsize);
+Template2=wzorcowe(t2y:t2y+Tsize,t2x:t2x+Tsize);
+//wyswietlenie obszarow
+scf(2).color_map=graycolormap(255);
+clf
+Matplot(Template1);
+scf(3).color_map=graycolormap(255);
+clf
+Matplot(Template2);
+//poszukiwanie template1 w okolicy poprzedniego połozenia
+Mapa1=zeros(2*Area,2*Area);
+for x=1:Area*2
+    for y=1:Area*2
+        Mapa1(y,x)=korelacja(odksztalcone,Template1,t1x-Area+x,t1y-Area+y);
+    end
+end
+scf(4).color_map=graycolormap(255);
+clf
+//skalowanie dla wyswietlania
+Mapa1Plot=Mapa1-min(Mapa1);
+Mapa1Plot=Mapa1Plot*255/max(Mapa1Plot);
+Matplot(Mapa1Plot);
+//poszukiwanie template2 w okolicy poprzedniego połozenia
+Mapa2=zeros(2*Area,2*Area);
+for x=1:Area*2
+    for y=1:Area*2
+        Mapa2(y,x)=korelacja(odksztalcone,Template2,t2x-Area+x,t2y-Area+y);
+    end
+end
+scf(5).color_map=graycolormap(255);
+clf
+Mapa2Plot=Mapa2-min(Mapa2);
+Mapa2Plot=Mapa2Plot*255/max(Mapa2Plot);
+Matplot(Mapa2Plot);
+[val1,xy1]=max(Mapa1);
+[val2,xy2]=max(Mapa2);
+//estymacja subpikselowa
+x1SUB=xy1(2)+(Mapa1(xy1(1),xy1(2)+1)-Mapa1(xy1(1),xy1(2)-1))/(4*val1-2*(Mapa1(xy1(1),xy1(2)+1)+Mapa1(xy1(1),xy1(2)-1)));
+y1SUB=xy1(1)+(Mapa1(xy1(1)+1,xy1(2))-Mapa1(xy1(1)-1,xy1(2)))/(4*val1-2*(Mapa1(xy1(1)+1,xy1(2))+Mapa1(xy1(1)-1,xy1(2))));
+x2SUB=xy2(2)+(Mapa2(xy2(1),xy2(2)+1)-Mapa2(xy2(1),xy2(2)-1))/(4*val2-2*(Mapa2(xy2(1),xy2(2)+1)+Mapa2(xy2(1),xy2(2)-1)));
+y2SUB=xy2(1)+(Mapa2(xy2(1)+1,xy2(2))-Mapa2(xy2(1)-1,xy2(2)))/(4*val2-2*(Mapa2(xy2(1)+1,xy2(2))+Mapa2(xy2(1)-1,xy2(2))));
+A0=sqrt((t1x-t2x)^2+(t1y-t2y)^2);
+dA=sqrt((xy1(1)-xy2(1))^2+(xy1(2)-xy2(2))^2);
+dASUB=sqrt((x1SUB-x2SUB)^2+(y1SUB-y2SUB)^2);
+wydluzenie=dA/A0*100;
+wydluzenieSUB=dASUB/A0*100;
+disp("%",wydluzenie)
+disp("% subpixelowo",wydluzenieSUB)
+
+// Otwórz nowe okno
+scf(10);
+clf();
+
+// Paleta szarości
+f = gcf();
+f.color_map = gray(256);
+
+// Wyświetl obraz w skali szarości
+Matplot(wzorcowe);
+
+// Odwrócenie Y
+[wys, szer] = size(wzorcowe);
+t1y_plot = wys - t1y;
+t2y_plot = wys - t2y;
+
+// Dodaj czerwony kolor do palety (RGB: [255 0 0])
+f.color_map(257, :) = [1, 0, 0]; // dodaj kolor jako 257. kolor
+
+// Koordynaty prostokątów
+x1 = [t1x, t1x+Tsize, t1x+Tsize, t1x, t1x];
+y1 = [t1y_plot, t1y_plot, t1y_plot - Tsize, t1y_plot - Tsize, t1y_plot];
+
+x2 = [t2x, t2x+Tsize, t2x+Tsize, t2x, t2x];
+y2 = [t2y_plot, t2y_plot, t2y_plot - Tsize, t2y_plot - Tsize, t2y_plot];
+
+// Rysuj prostokąty na czerwono (kolor = 257)
+h1 = xpoly(x1, y1, "lines");
+h1.foreground = 257;
+
+h2 = xpoly(x2, y2, "lines");
+h2.foreground = 257;
