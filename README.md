@@ -22,11 +22,6 @@ W ramach projektu przeprowadzono szereg testów, które wykazały:
 * **Dokładność algorytmu:** Estymacja subpikselowa znacząco poprawiła dokładność wyników (szczególnie przy dużych odkształceniach dochodzących do **2.28%**).
 * **Fizyka materiału:** Badanie różnych współrzędnych pionowych (`t1y`, `t2y`) udowodniło, że próbka rozciągała się nierównomiernie (większe odkształcenia w górnej partii materiału).
 
-## 📁 Zawartość repozytorium
-* `dic_analysis.sce` - główny skrypt w języku Scilab realizujący wczytanie obrazów, korelację i obliczenia.
-* `images_txt/` - przykładowe obrazy wejściowe przekonwertowane do macierzy tekstowych (np. `1_00080.txt`).
-* `Sprawozdanie_DIC.pdf` - pełna dokumentacja z metodyką badań i tabelami wyników.
-
 ## 📷 Wizualizacja działania
 
 ### Zaznaczenie obszarów śledzenia na obrazie wzorcowym
